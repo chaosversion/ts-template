@@ -10,10 +10,7 @@ const envSchema = z.object({
   DATABASE_URL: z.string(),
   REDIS_URL: z.string(),
   PORT: z.coerce.number().default(3333),
-  COOKIE_SECRET: z
-    .string()
-    .min(32)
-    .default('default-insecure-secret-please-change'),
+  COOKIE_SECRET: z.string().min(32),
   RATE_LIMIT_MAX: z.coerce.number().default(10)
 });
 
