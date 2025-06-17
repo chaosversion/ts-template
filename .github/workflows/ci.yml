@@ -1,0 +1,93 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ '*' ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 20
+        cache: 'npm'
+    
+    - name: Install Dependencies
+      run: npm ci
+      
+    - name: Run Unit Tests
+      run: npm run knex -- migrate:latest && npm run test:unit
+      env:
+        NODE_ENV: test
+        DATABASE_URL: postgres://test:test@localhost:5432/test
+        REDIS_URL: redis://localhost:6379
+    
+    - name: Run E2E Tests
+      run: npm run knex -- migrate:latest && npm run test:e2e
+      env:
+        NODE_ENV: test
+        DATABASE_URL: postgres://test:test@localhost:5432/test
+        REDIS_URL: redis://localhost:6379
+    
+    - name: Upload Coverage
+      uses: codecov/codecov-action@v3
+      if: success()
+
+    - name: Run Biome
+      run: |
+        npx biome ci
+        npx biome check --apply-unsafe .  
+
+  security:
+    name: Security Checks
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v3
+    
+    - name: Audit Dependencies
+      run: npm audit --audit-level=moderate
+      
+    - name: Run Snyk Security Scan
+      uses: snyk/actions/node@master
+      with:
+        command: monitor
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [test, security]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/s

@@ -1,0 +1,15 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+Person(user, "Usuário", "Realiza transações financeiras")
+
+System(api, "Transactions API", "Processa transações e fornece relatórios")
+
+System_Ext(db, "Database", "Armazena dados das transações")
+System_Ext(redis, "Redis", "Cache de sumários")
+
+Rel(user, api, "Realiza operações via HTTP")
+Rel(api, db, "Lê/Escreve dados")
+Rel(api, redis, "Armazena/Consulta cache")
+
+@enduml

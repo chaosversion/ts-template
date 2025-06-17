@@ -1,0 +1,19 @@
+@startuml
+actor User
+participant Controller
+participant Service
+participant Repository
+database Database
+participant Redis
+
+User -> Controller: POST /transactions {title, amount, type}
+Controller -> Service: createTransaction(data)
+Service -> Repository: create(data)
+Repository -> Database: INSERT transaction
+Database --> Repository: 
+Repository --> Service: 
+Service -> Redis: DEL summary:{sessionId}
+Redis --> Service: 
+Service --> Controller: 
+Controller -> User: 201 Created + Set-Cookie
+@enduml

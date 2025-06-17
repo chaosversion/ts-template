@@ -1,0 +1,22 @@
+# lefthook.yml
+pre-commit:
+  parallel: true
+  commands:
+    lint:
+      run: npm run lint
+      glob: "**/*.{ts,tsx}"
+    format:
+      run: npm run format
+      glob: "**/*.{ts,tsx}"
+    typecheck:
+      run: npm run typecheck
+      fail_text: "Erro de tipagem encontrado"
+    # test:
+    #   run: npm test
+    #   only: "**/*.{ts,tsx}"
+    concurrency: 4 # Limita a 4 processos paralelos
+    
+exclude:
+  - "**/node_modules/**"
+  - "**/dist/**"
+
