@@ -14,7 +14,7 @@ export const app = fastify({
 
 // Register plugins and routes
 app.register(fastifyCookie, {
-  secret: process.env.COOKIE_SECRET
+  secret: env.COOKIE_SECRET
 });
 
 app.register(fastifyHelmet, {
